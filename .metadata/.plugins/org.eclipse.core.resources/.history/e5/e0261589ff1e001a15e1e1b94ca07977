@@ -1,0 +1,33 @@
+<%@ page language="java" contentType="text/html; charset=EUC-KR"
+    pageEncoding="EUC-KR"%>
+  <%@ page import="javax.mail.*" %> 
+   <%@ page import="javax.mail.internet.*" %> 
+   <%@page import="javax.mail.Authenticator" %> 
+   <%@page import="javax.mail.PasswordAuthentication" %> 
+   <%@page import="java.util.Properties" %>
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="EUC-KR">
+<title>Insert title here</title>
+</head>
+<body>
+<% 
+
+String userID=null;
+if(session.getAttribute("userID") != null){
+	userID=(String)session.getAttribute("userID");
+	
+}
+
+
+
+%>
+
+
+
+</body>
+</html>

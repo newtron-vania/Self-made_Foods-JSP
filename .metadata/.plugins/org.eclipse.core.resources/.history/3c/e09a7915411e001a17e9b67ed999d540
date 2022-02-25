@@ -1,0 +1,199 @@
+package bbs;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+
+public class BbsDAO{
+	// dao : 데이터베이스 접근 객체의 약자
+	private Connection conn; // connection:db에접근하게 해주는 객체
+	// private PreparedStatement pstmt;
+	private ResultSet rs;
+
+	// mysql 처리부분
+	public BbsDAO() {
+		// 생성자를 만들어준다.
+		try {
+//			String dbURL = "jdbc:mysql://localhost:3306/recipe?&useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
+//			String dbID = "root";
+//			String dbPassword = "1234";
+			String dbURL = "jdbc:oracle:thin:@localhost:1521:XE";
+			String dbID = "a201645006";
+			String dbPassword = "manager";
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+			conn = DriverManager.getConnection(dbURL, dbID, dbPassword);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	// 현재의 시간을 가져오는 함수
+	public String getDate() {
+		 //String SQL = "SELECT NOW()";	//오라클  : select to_char(sysdate,'yyyy-mm-dd hh:mi:ss') from dual;
+		String SQL="SELECT TO_CHAR(sysdate , 'yyyy-mm-dd hh:mi:ss') from dual";
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString(1);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ""; // 데이터베이스 오류
+	}
+
+	// bbsID 게시글 번호 가져오는 함수
+	public int getNext() {
+		String SQL = "SELECT recipeID FROM recipe ORDER BY recipeID DESC";
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return rs.getInt(1) + 1;
+			}
+			return 1;// 첫 번째 게시물인 경우
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return -1; // 데이터베이스 오류
+	}
+
+	//------------------------------------------------------------------------------------------------------
+
+	//---------------------------------------------------실제로 글을 작성하는 함수
+
+	public int write(String recipeTitle, String userEmail,String fileRealName,String filePath, String recipeContent) { 
+		
+		String SQL = "INSERT INTO recipe VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			pstmt.setInt(1, getNext());
+			pstmt.setString(2, recipeTitle);
+			pstmt.setString(3, userEmail);
+			pstmt.setString(4, fileRealName);
+			pstmt.setString(5, filePath);
+			pstmt.setString(6, getDate());
+			pstmt.setString(7, recipeContent);
+			pstmt.setInt(8,1);	
+	return pstmt.executeUpdate();
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return -1; //데이터베이스 오류
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------- 
+	
+	public ArrayList<Bbs> getList(int pageNumber){ 
+
+		String SQL = "SELECT * FROM recipe WHERE recipeID < ? and recipeAvailable = 1 ORDER BY recipeID DESC LIMIT 5";
+
+		ArrayList<Bbs> list = new ArrayList<Bbs>();
+
+		try {
+
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			pstmt.setInt(1, getNext() - (pageNumber -1) * 5);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+
+				Bbs bbs = new Bbs();
+
+				bbs.setRecipeID(rs.getInt(1));
+				bbs.setRecipeTitle(rs.getString(2));
+				bbs.setUserEmail(rs.getString(3));
+				bbs.setFileRealName(rs.getString(4));
+				bbs.setFilepath(rs.getString(5));
+				bbs.setRecipeDate(rs.getString(6));
+				bbs.setRecipeContent(rs.getString(7));
+				bbs.setRecipeAvailable(rs.getInt(8));
+				list.add(bbs);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return list; 
+
+	}
+
+	//10 단위 페이징 처리를 위한 함수
+
+	public boolean nextPage (int pageNumber) {
+		String SQL = "SELECT * FROM recipe WHERE recipeID < ? and recipeAvailable = 1 ORDER BY recipeID DESC LIMIT 5";
+		ArrayList<Bbs> list = new ArrayList<Bbs>();
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			pstmt.setInt(1, getNext() - (pageNumber -1) * 5);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				return true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false; 	
+		
+//	----------------------	-----------------------------------------------------------------------------
+		
+		
+		
+	}
+
+	public Bbs getBbs(int recipeID) {
+		String SQL = "SELECT * FROM recipe WHERE recipeID = ?";
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			pstmt.setInt(1, recipeID);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				Bbs bbs = new Bbs();
+				bbs.setRecipeID(rs.getInt(1));
+				bbs.setRecipeTitle(rs.getString(2));
+				bbs.setUserEmail(rs.getString(3));
+				bbs.setRecipeDate(rs.getString(4));
+				bbs.setRecipeContent(rs.getString(5));
+				bbs.setRecipeAvailable(rs.getInt(6));
+				return bbs;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	// 수정 함수
+
+	public int update(int recipeID, String recipeTitle,String fileRealName, String recipeContent) {
+		String SQL = "UPDATE BBS SET recipeTitle = ?, recipeContent = ?, WHERE recipeID = ?";
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(SQL);
+			pstmt.setString(1, recipeTitle);
+			pstmt.setString(2, fileRealName);
+			pstmt.setString(3, recipeContent);
+			pstmt.setInt(4, recipeID);
+			return pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return -1; // 데이터베이스 오류
+	}
+	
+	//삭제 함수
+		public int delete(int recipeID) {
+			String SQL = "UPDATE recipe SET recipeAvailable = 0 WHERE recipeID = ?";
+			try {
+				PreparedStatement pstmt = conn.prepareStatement(SQL);   
+				pstmt.setInt(1, recipeID);
+				return pstmt.executeUpdate();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return -1; // 데이터베이스 오류
+		}
+}

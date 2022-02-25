@@ -1,0 +1,154 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ page import="bbs.BbsDAO"%>
+
+<!-- 작성자:2019.12.06개발자 -->
+<%@ page import="java.io.FileInputStream"%>
+<%@ page import="java.io.InputStream"%>
+<!-- /작성자:2019.12.06개발자 -->
+ <%@page import="com.oreilly.servlet.multipart.DefaultFileRenamePolicy" %> 
+ <%@page import="com.oreilly.servlet.MultipartRequest" %>
+<!-- bbsdao의 클래스 가져옴 -->
+<%@ page import="java.io.PrintWriter"%>
+<!-- 자바 클래스 사용 -->
+<!-- 작성자:2019.12.06개발자 -->
+<%@ page import="java.util.Iterator"%>
+<%@ page import="java.util.Map"%>
+<%@ page import="java.util.Map.Entry"%>
+<%@ page import="java.util.UUID"%>
+<%@ page import="java.util.Calendar"%>
+<%@ page import="com.oreilly.servlet.*, com.oreilly.servlet.multipart.*" %><!--com.oreilly의 MultipartFile클래스지원하는지 확인하기!-->
+<!-- /작성자:2019.12.06개발자 -->
+<%
+	request.setCharacterEncoding("UTF-8");
+	response.setContentType("text/html; charset=UTF-8"); //set으로쓰는습관들이세오.
+%>
+<!-- 한명의 회원정보를 담는 user클래스를 자바 빈즈로 사용 / scope:페이지 현재의 페이지에서만 사용-->
+<jsp:useBean id="bbs" class="bbs.Bbs" scope="page" />
+<!-- // Bbs bbs = new Bbs(); -->
+<%
+	System.out.println(bbs);
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>jsp 게시판 웹사이트</title>
+</head>
+<body>
+<%
+
+String path = application.getRealPath("/upload/");
+int maxSize = 1024 * 1024 * 100; //파일의 최대크기 100mg
+String encoding = "UTF-8";
+DefaultFileRenamePolicy db = new DefaultFileRenamePolicy();
+MultipartRequest multi = new MultipartRequest(request, path,maxSize,encoding,new DefaultFileRenamePolicy());
+//사용자가 전송한 request {전송한 파일전송 토대로 우리가 만든 업로드 폴더directory에다가 maxsize만큼만 utf-8인코딩을 해 실제로 파일 업로드 할수 있게끔 해줌
+String file = multi.getParameter("file");
+	String fileName = multi.getOriginalFileName("file");
+//사용자가 전송한 파일이라는 이름을 가진 파일에서 파라미터 값을 받아서 그 업로드 하고자 하는 파일을 파일 네임으로 지정
+	String fileRealName = multi.getFilesystemName("file");
+//실제로 서버에 업로드가 된  파일 시스템 네임을 가져올수 있도록 하는것
+String recipeTitle = multi.getParameter("recipeTitle");
+String recipeContent = multi.getParameter("recipeContent"); //변수들을 선언해서 form값들을 변수안에 저장
+
+bbs.setRecipeTitle(recipeTitle);
+bbs.setRecipeContent(recipeContent);
+
+//new FIleDAO().upload(fileName,fileRealName);{
+//FileDAO의 upload메소드가 실행이 되어서 데이터베이스에 접근을 해서 파일을 삽입해 실제 파일을 업로드 시킴
+//out.write("파일명:" + fileName +" <br>");
+//out.write("실제 파일명:" + fileRealName +" <br>");
+//}
+
+
+if(fileRealName == null)//파일이 없는경우
+{
+	bbs.setFileRealName("");
+	bbs.setFilepath("");
+}
+else
+{ 
+	bbs.setFileRealName(fileRealName);
+	bbs.setFilepath(path);
+}
+
+
+%>
+
+	<%
+		String userEmail = null;
+		if (session.getAttribute("userEmail") != null) {//유저아이디이름으로 세션이 존재하는 회원들은 
+			userEmail = (String) session.getAttribute("userEmail");//유저아이디에 해당 세션값을 넣어준다.
+		}
+		if (userEmail == null) {
+			PrintWriter script = response.getWriter();
+			script.println("<script>");
+			script.println("alert('로그인을 하세요.')");
+			script.println("location.href = 'Login.jsp'");
+			script.println("</script>");
+		} else {
+			if (bbs.getRecipeContent().equals("")||bbs.getRecipeTitle().equals("")||bbs.getRecipeTitle() == null || bbs.getRecipeContent() == null) {
+				PrintWriter script = response.getWriter();
+				script.println("<script>");
+				script.println("alert('입력이 안된 사항이 있습니다')");
+				script.println("history.back()");
+				script.println("</script>");
+			} else {
+				
+				////작성자:2019.12.06개발자
+				//파일이름생성
+				
+			
+		//오류시 +"\\"삭제후 시도바람.
+		
+		
+						//file.transferTo(new File(filePath.replaceAll(" ", "")));
+						//데이터베이스에 보내야할꺼 새로운파일이름:convertuid,기존파일이름(필수X):fileRealName,파일사이즈(필수X):filesize,이미지경로:filePath
+						BbsDAO bbsDAO = new BbsDAO();
+						System.out.println("매개변수"+bbs.getRecipeTitle()+","+userEmail+","+bbs.getFileRealName()+","+bbs.getRecipeContent());
+						//int f_result = fileDAO.upload(File.getFileName(), File.getFileRealName());
+						//FIleDAO fileDAO = new FIleDAO();			
+						int result = bbsDAO.write(bbs.getRecipeTitle(), userEmail,bbs.getFileRealName(),bbs.getFilepath(), bbs.getRecipeContent());//convertuid,filePath ->데이터베이스에 열이름 추가필요.
+						
+						if (result == -1) {
+							PrintWriter script = response.getWriter();
+							script.println("<script>");
+							script.println("alert('글쓰기에 실패했습니다')");
+							script.println("history.back()");
+							script.println("</script>");
+						} 
+						else {
+			
+				////작성자:2019.12.06개발자
+				
+				
+				////주석처리:2019.12.06개발자
+/* 				BbsDAO BbsDAO = new BbsDAO();
+				int result = BbsDAO.write(bbs.getRecipeTitle(), userEmail,bbs.getFileRealName(), bbs.getRecipeContent());
+				if (result == -1) {
+					PrintWriter script = response.getWriter();
+					script.println("<script>");
+					script.println("alert('글쓰기에 실패했습니다')");
+					script.println("history.back()");
+					script.println("</script>");
+				} else {
+					
+					
+					
+				} */
+				////주석처리:2019.12.06개발자
+				
+					PrintWriter script = response.getWriter();
+					script.println("<script>");
+					script.println("location.href='BBS.jsp'");
+					//script.println("history.back()");
+					script.println("</script>");
+						}
+				}
+			}
+
+		
+	%>
+</body>
+</html>

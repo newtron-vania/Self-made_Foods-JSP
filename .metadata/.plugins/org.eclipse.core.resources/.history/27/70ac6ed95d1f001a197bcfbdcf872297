@@ -1,0 +1,80 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ page import="bbs.BbsDAO"%>
+<%@ page import="bbs.Bbs"%>
+<%@page import="user.User"%>
+<%@page import="user.UserDAO"%>
+<%@ page import="java.io.PrintWriter"%>
+<%
+	request.setCharacterEncoding("UTF-8");
+	//sresponse.setContentType("text/html; charset=UTF-8");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>삼시세끼</title>
+</head>
+<body>
+	<%
+		String userEmail = null;
+		if (session.getAttribute("userEmail") != null) {//유저아이디이름으로 세션이 존재하는 회원들은 
+			userEmail = (String) session.getAttribute("userEmail");//유저아이디에 해당 세션값을 넣어준다.
+		}
+		if (userEmail == null) {
+			PrintWriter script = response.getWriter();
+			script.println("<script>");
+			script.println("alert('로그인을 하세요.')");
+			script.println("location.href = 'Login.jsp'");
+			script.println("</script>");
+		} 
+		//글이 유효한지 판별
+		int recipeID = 0;
+		if (request.getParameter("recipeID") != null) {
+			recipeID = Integer.parseInt(request.getParameter("recipeID"));
+		}
+		if (recipeID == 0) {
+			PrintWriter script = response.getWriter();
+			script.println("<script>");
+			script.println("alert('유효하지 않은 글 입니다.')");
+			script.println("location.href = 'BBS.jsp'");
+			script.println("</script>");
+		}
+		Bbs bbs = new BbsDAO().getBbs(recipeID);
+		User user = new UserDAO().getUser(userEmail);
+		if (!userEmail.equals(bbs.getUserEmail())||!(user.getAdminCheck()==3)) {
+			PrintWriter script = response.getWriter();
+			script.println("<script>");
+			script.println("alert('권한이 없습니다.')");
+			script.println("location.href = 'BBS.jsp'");
+			script.println("</script>");				
+		} else {
+			if (request.getParameter("recipeTitle") == null || request.getParameter("recipeContent") == null
+					|| request.getParameter("recipeTitle").equals("") || request.getParameter("recipeContent").equals("")) {
+				PrintWriter script = response.getWriter();
+				script.println("<script>");
+				script.println("alert('입력이 안된 사항이 있습니다')");
+				//script.println("history.back()");
+				out.println(request.getParameter("recipeTitle"));
+				out.println(request.getParameter("recipeContent"));
+				script.println("</script>");
+			} else {
+				BbsDAO BbsDAO = new BbsDAO();
+				int result = BbsDAO.update(recipeID, request.getParameter("recipeTitle"), request.getParameter("recipeContent"));
+				if (result == -1) {
+					PrintWriter script = response.getWriter();
+					script.println("<script>");
+					script.println("alert('글수정에 실패했습니다')");
+					script.println("history.back()");
+					script.println("</script>");
+				} else {
+					PrintWriter script = response.getWriter();
+					script.println("<script>");
+					script.println("location.href='BBS.jsp'");
+					//script.println("history.back()");
+					script.println("</script>");
+				}
+			}
+		}
+	%>
+</body>
+</html>

@@ -1,0 +1,48 @@
+ <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width" initial-scale="1">
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<title>자취세끼</title>
+</head>
+<body>
+ <nav class="navbar navbar-default">
+  <div class="navbar-header">
+   <button type="button" class="navbar-toggle collapsed" 
+    data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"
+    aria-expaned="false">
+    </button>
+    <a class="navbar-brand" href="Main.jsp">자취세끼</a>
+  </div>
+  <div class="collapse navbar-collapse" id="#bs-example-navbar-collapse-1">
+   <ul class="nav navbar-nav">
+    <li><a href="Login.jsp">로그인</a></li>
+    <li><a href="AdminJoin.jsp">관리자 가입</a></li>
+    <li><a href="Join.jsp">회원가입</a></li>
+   </ul>
+  </div> 
+ </nav>
+ <!-- 로긴폼 -->
+ <div class="container">
+  <div class="col-lg-4"></div>
+  <div class="col-lg-4">
+   <form method="post" action="LoginAction.jsp">
+    <h3 style="text-align: center;"> <img src="image/logo1.PNG" width="300" height="300"></h3>
+    <div class="form-group">
+     <input type="email" class="form-control" placeholder="이메일" name="userEmail" maxlength="20">
+    </div>
+    <div class="form-group">
+     <input type="password" class="form-control" placeholder="비밀번호" name="userPassword" maxlength="20">
+    </div>
+    <input type="submit" class="btn btn-primary form-control" value="로그인">
+   
+   </form>
+  </div>
+ </div>
+</div>
+ <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+ <script src="js/bootstrap.js"></script>
+</body>
+</html>
