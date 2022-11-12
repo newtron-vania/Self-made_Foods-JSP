@@ -33,6 +33,7 @@ Oracle에서 제공하는 관계형 DBMS. 시중에서 가장 많이 사용되�
 º 상단 메뉴바 - 홈, 레시피 게시판, 자유게시판으로 구성되어 있다.
 º 최신 레시피 리스트 3개 출력
 º 페이스북, 유튜브 등의 문서 연결 아이콘
+
 <img src="https://user-images.githubusercontent.com/48934539/201462433-a1656707-92f0-4d65-aa1f-a765712317c5.png">
 
 #### º 관리자 전용 ID
@@ -49,6 +50,7 @@ fbbs - 자유게시판 게시글 테이블
 #### º 로그인 시스템(관리자 전용 ID 존재)
 
 <img src="https://user-images.githubusercontent.com/48934539/201462414-124b8b51-99c7-4368-b56f-41d823ab8c6d.png">
+
 #### º 비밀번호 암호화(SHA256 Hash)
 
 ![개인정보 암호화 방식](https://user-images.githubusercontent.com/48934539/201463192-4a5d48e1-0516-417c-952a-290f174402bb.PNG)
